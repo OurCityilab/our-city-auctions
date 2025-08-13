@@ -278,13 +278,34 @@
             <span v-else class="text-gray-400 text-sm">Complete Level 2 first</span>
           </div>
           
+          <!-- Show response rate hint -->
+          <div v-if="researchData?.level === 2 && !researchData?.occupantDetails" class="mb-3 p-3 bg-yellow-50 rounded text-sm">
+            <p class="text-gray-700">
+              <strong>Contact Attempt:</strong> Success rate varies by occupant (30-70%). 
+              Each attempt costs 1 credit whether successful or not.
+            </p>
+          </div>
+          
+          <!-- Show occupant details if contact was successful -->
           <div v-if="researchData?.level >= 3 && researchData.occupantDetails" class="bg-purple-50 rounded p-4">
             <div class="space-y-2 text-sm">
-              <p><strong>Willingness to Negotiate:</strong> {{ researchData.occupantDetails.willingToNegotiate ? 'Yes' : 'No' }}</p>
+              <p class="text-green-600 font-semibold mb-2">✓ Contact Successful!</p>
+              <p><strong>Name:</strong> {{ researchData.occupantDetails.name }}</p>
+              <p><strong>Occupation:</strong> {{ researchData.occupantDetails.occupation || 'Unknown' }}</p>
               <p><strong>Monthly Income:</strong> ${{ researchData.occupantDetails.monthlyIncome?.toLocaleString() || 'Unknown' }}</p>
               <p><strong>Credit Score:</strong> {{ researchData.occupantDetails.creditScore || 'Unknown' }}</p>
+              <p><strong>Willingness to Negotiate:</strong> {{ researchData.occupantDetails.willingToNegotiate ? 'Yes' : 'No' }}</p>
+              <p><strong>Preferred Outcome:</strong> {{ formatPreference(researchData.occupantDetails.preferredOutcome) }}</p>
               <p><strong>Story:</strong> {{ researchData.occupantDetails.story || 'No additional information' }}</p>
             </div>
+          </div>
+          
+          <!-- Show if contact failed -->
+          <div v-else-if="researchData?.level >= 3 && !researchData.occupantDetails" class="bg-red-50 rounded p-4">
+            <p class="text-red-600 text-sm">
+              ✗ Contact attempt failed. The occupant was not available or willing to speak. 
+              1 credit was deducted. You may try again if you have credits remaining.
+            </p>
           </div>
         </div>
       </div>
@@ -310,7 +331,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useStudentStore } from '~/stores/studentStore'
 import { useGameStore } from '~/stores/gameStore'
 import { 
@@ -334,6 +355,21 @@ const props = defineProps({
 const emit = defineEmits(['close', 'create-sell-sheet'])
 const studentStore = useStudentStore()
 const gameStore = useGameStore()
+
+// ESC key handler for modal close
+onMounted(() => {
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      emit('close')
+    }
+  }
+  window.addEventListener('keydown', handleEsc)
+  
+  // Cleanup on unmount
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleEsc)
+  })
+})
 
 // State
 const studentMarketValue = ref(0)
@@ -382,10 +418,27 @@ const maxBidCalculation = computed(() => {
 
 // Methods
 function performResearch(level) {
+  // For Level 3, use the contact attempt method with success rate
+  if (level === 3) {
+    const result = studentStore.attemptOccupantContact(props.property.id)
+    if (result) {
+      if (result.contactSuccessful) {
+        // Contact was successful
+        alert(result.contactMessage || 'Successfully contacted occupant!')
+      } else {
+        // Contact failed but credit was deducted
+        alert(result.contactMessage || 'Unable to reach occupant. 1 credit deducted.')
+      }
+    }
+    return result
+  }
+  
+  // For Level 1 and 2, use regular research
   const result = studentStore.performResearch(props.property.id, level)
   if (result) {
     console.log('Research successful:', result)
   }
+  return result
 }
 
 function calculateLTV() {

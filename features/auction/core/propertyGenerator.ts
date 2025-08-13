@@ -219,38 +219,119 @@ export function generateSeededProperties(seed: number, count: number = 50): Auct
 // ============================================================================
 
 function generateComparables(property: any, cityConfig: CityConfig, rng: any): any[] {
+  // Generate 3-6 comps per appraisal standards
+  const numComps = 3 + Math.floor(rng() * 4); // 3-6 comps
   const comps = [];
   const basePrice = property.marketValue;
   
-  for (let i = 0; i < 5; i++) {
-    // Create realistic variation (85% to 115% of value)
-    const variation = 0.85 + rng() * 0.3;
-    const soldPrice = Math.floor(basePrice * variation);
+  // Age distribution weights (more recent = more relevant)
+  const ageWeights = [
+    { min: 7, max: 30, weight: 0.4 },    // 1 week - 1 month (40% chance)
+    { min: 31, max: 90, weight: 0.3 },   // 1-3 months (30% chance)
+    { min: 91, max: 180, weight: 0.2 },  // 3-6 months (20% chance)
+    { min: 181, max: 365, weight: 0.1 }  // 6-12 months (10% chance)
+  ];
+  
+  for (let i = 0; i < numComps; i++) {
+    // Select age range based on weights
+    const random = rng();
+    let cumWeight = 0;
+    let ageRange = ageWeights[0];
+    for (const range of ageWeights) {
+      cumWeight += range.weight;
+      if (random < cumWeight) {
+        ageRange = range;
+        break;
+      }
+    }
     
-    // Square footage variation (90% to 110%)
-    const sqftVariation = 0.9 + rng() * 0.2;
+    const daysAgo = ageRange.min + Math.floor(rng() * (ageRange.max - ageRange.min));
+    
+    // Market appreciation (roughly 5% per year)
+    const dailyAppreciation = 0.05 / 365;
+    const appreciationFactor = 1 - (daysAgo * dailyAppreciation);
+    
+    // Similar characteristics (within 20% variation) - apples to apples
+    const sqftVariation = 0.8 + rng() * 0.4; // 80% to 120%
     const compSqft = Math.floor(property.squareFeet * sqftVariation);
+    
+    // Price variation based on market conditions and comp quality
+    const priceVariation = 0.85 + rng() * 0.3; // 85% to 115%
+    const soldPrice = Math.floor(basePrice * appreciationFactor * priceVariation);
     
     // Generate comp address (nearby streets)
     const streetNumber = Math.floor(1000 + rng() * 8999);
     const streetName = STREET_NAMES[Math.floor(rng() * STREET_NAMES.length)];
     const streetType = STREET_TYPES[Math.floor(rng() * STREET_TYPES.length)];
     
-    comps.push({
+    // Determine condition and adjustment
+    const conditionOptions = [
+      { condition: 'SIMILAR', weight: 0.5, adjustment: 0 },
+      { condition: 'SUPERIOR', weight: 0.25, adjustment: -0.05 },
+      { condition: 'INFERIOR', weight: 0.25, adjustment: 0.05 }
+    ];
+    
+    const condRandom = rng();
+    let cumCondWeight = 0;
+    let selectedCondition = conditionOptions[0];
+    for (const opt of conditionOptions) {
+      cumCondWeight += opt.weight;
+      if (condRandom < cumCondWeight) {
+        selectedCondition = opt;
+        break;
+      }
+    }
+    
+    const comp = {
+      id: `comp-${property.id}-${i}`,
       address: `${streetNumber} ${streetName} ${streetType}`,
-      distance: (rng() * 2).toFixed(1), // 0-2 miles away
-      daysAgo: Math.floor(rng() * 180), // Last 6 months
-      soldPrice: soldPrice,
-      bedrooms: property.bedrooms + Math.floor(rng() * 3) - 1,
-      bathrooms: property.bathrooms,
+      distance: (0.1 + rng() * 1.9).toFixed(1), // 0.1 to 2 miles
+      daysAgo: daysAgo,
+      dateString: getDateString(daysAgo),
+      
+      // Similar characteristics
+      bedrooms: property.bedrooms + (rng() > 0.7 ? Math.floor(rng() * 2) - 1 : 0),
+      bathrooms: property.bathrooms + (rng() > 0.8 ? 0.5 : 0),
       squareFeet: compSqft,
+      yearBuilt: property.yearBuilt + Math.floor(rng() * 20) - 10,
+      
+      // Pricing
+      soldPrice: soldPrice,
       pricePerSqft: Math.floor(soldPrice / compSqft),
-      condition: ['Excellent', 'Good', 'Fair', 'Poor'][Math.floor(rng() * 4)]
-    });
+      
+      // Condition and adjustments
+      condition: selectedCondition.condition,
+      suggestedAdjustment: selectedCondition.adjustment,
+      adjustmentReason: selectedCondition.condition === 'SUPERIOR' 
+        ? 'Comp has updated kitchen/bath' 
+        : selectedCondition.condition === 'INFERIOR'
+        ? 'Comp needs updates'
+        : null
+    };
+    
+    comps.push(comp);
   }
   
-  // Sort by distance for realism
-  return comps.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  // Sort by distance first, then by date (closest and newest are best)
+  return comps.sort((a, b) => {
+    const distDiff = parseFloat(a.distance) - parseFloat(b.distance);
+    if (Math.abs(distDiff) > 0.5) {
+      return distDiff;
+    }
+    return a.daysAgo - b.daysAgo;
+  });
+}
+
+// Helper function to convert days to readable string
+function getDateString(daysAgo: number): string {
+  if (daysAgo <= 7) return '1 week ago';
+  if (daysAgo <= 14) return '2 weeks ago';
+  if (daysAgo <= 30) return '1 month ago';
+  if (daysAgo <= 60) return '2 months ago';
+  if (daysAgo <= 90) return '3 months ago';
+  if (daysAgo <= 180) return '6 months ago';
+  if (daysAgo <= 270) return '9 months ago';
+  return '12 months ago';
 }
 
 // ============================================================================

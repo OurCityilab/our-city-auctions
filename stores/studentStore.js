@@ -132,16 +132,35 @@ export const useStudentStore = defineStore('student', {
       const property = gameStore.session.properties.find(p => p.id === propertyId)
       if (!property || !property.occupant) return false
       
-      // Check if contact is successful (60% base rate)
-      const contactSuccessful = Math.random() < 0.6
+      // Use occupant's response rate (30-70% based on their profile)
+      const responseRate = property.occupant.responseRate || 0.5
+      const contactSuccessful = Math.random() < responseRate
       
       if (contactSuccessful) {
-        // Perform level 3 research
-        return this.performResearch(propertyId, 3)
+        // Perform level 3 research - this reveals occupant details
+        const researchData = this.performResearch(propertyId, 3)
+        
+        // Add success message to research data
+        if (researchData) {
+          researchData.contactSuccessful = true
+          researchData.contactMessage = `Successfully contacted ${property.occupant.name}. They are willing to discuss their situation.`
+        }
+        
+        return researchData
       } else {
-        // Still costs a credit for the attempt
-        const gameStore = useGameStore()
-        gameStore.researchProperty(this.currentStudent.id, propertyId, 3)
+        // Still costs 1 credit for the attempt
+        if (this.currentStudent.researchCredits >= 1) {
+          // Deduct credit through gameStore
+          const gameStore = useGameStore()
+          gameStore.researchProperty(this.currentStudent.id, propertyId, 3)
+          
+          // Return failure message
+          return {
+            contactSuccessful: false,
+            contactMessage: `Unable to reach ${property.occupant.name}. They may not be available or willing to speak.`,
+            creditsDeducted: 1
+          }
+        }
         return null
       }
     },
