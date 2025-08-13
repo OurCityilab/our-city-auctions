@@ -1,6 +1,6 @@
 // features/auction/core/propertyGenerator.ts
 
-import seedrandom from 'seedrandom';
+import { createSeededRandom } from '../../utils/random';
 import type { 
   AuctionProperty, 
   CityName, 
@@ -178,7 +178,7 @@ const OCCUPANT_ARCHETYPES = [
 // ============================================================================
 
 export function generateSeededProperties(seed: number, count: number = 50): AuctionProperty[] {
-  const rng = seedrandom(seed.toString());
+  const rng = createSeededRandom(seed.toString());
   const properties: AuctionProperty[] = [];
   
   for (let i = 0; i < count; i++) {
