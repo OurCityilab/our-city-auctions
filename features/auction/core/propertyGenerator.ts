@@ -1,6 +1,6 @@
 // features/auction/core/propertyGenerator.ts
 
-import { createSeededRandom } from '../../utils/random';
+import { createSeededRandom } from '~/utils/random';
 import type { 
   AuctionProperty, 
   CityName, 
@@ -215,6 +215,45 @@ export function generateSeededProperties(seed: number, count: number = 50): Auct
 }
 
 // ============================================================================
+// Comparable Sales Generation
+// ============================================================================
+
+function generateComparables(property: any, cityConfig: CityConfig, rng: any): any[] {
+  const comps = [];
+  const basePrice = property.marketValue;
+  
+  for (let i = 0; i < 5; i++) {
+    // Create realistic variation (85% to 115% of value)
+    const variation = 0.85 + rng() * 0.3;
+    const soldPrice = Math.floor(basePrice * variation);
+    
+    // Square footage variation (90% to 110%)
+    const sqftVariation = 0.9 + rng() * 0.2;
+    const compSqft = Math.floor(property.squareFeet * sqftVariation);
+    
+    // Generate comp address (nearby streets)
+    const streetNumber = Math.floor(1000 + rng() * 8999);
+    const streetName = STREET_NAMES[Math.floor(rng() * STREET_NAMES.length)];
+    const streetType = STREET_TYPES[Math.floor(rng() * STREET_TYPES.length)];
+    
+    comps.push({
+      address: `${streetNumber} ${streetName} ${streetType}`,
+      distance: (rng() * 2).toFixed(1), // 0-2 miles away
+      daysAgo: Math.floor(rng() * 180), // Last 6 months
+      soldPrice: soldPrice,
+      bedrooms: property.bedrooms + Math.floor(rng() * 3) - 1,
+      bathrooms: property.bathrooms,
+      squareFeet: compSqft,
+      pricePerSqft: Math.floor(soldPrice / compSqft),
+      condition: ['Excellent', 'Good', 'Fair', 'Poor'][Math.floor(rng() * 4)]
+    });
+  }
+  
+  // Sort by distance for realism
+  return comps.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+}
+
+// ============================================================================
 // Property Generation Functions
 // ============================================================================
 
@@ -257,12 +296,17 @@ function generateProperty(index: number, cityConfig: CityConfig, rng: any): Auct
     ? `4820${Math.floor(1 + rng() * 35)}`
     : `4810${Math.floor(1 + rng() * 99)}`;
   
-  // Calculate liens
-  const primaryLien = Math.floor(marketValue * (0.6 + rng() * 0.4)); // 60-100% of value
+  // Calculate liens with more detail
+  const ltvRatio = 0.6 + rng() * 0.4; // 60-100% of value
+  const primaryLien = Math.floor(marketValue * ltvRatio * 0.8); // 80% of debt is first lien
   const hasSecondary = rng() < 0.3;
-  const secondaryLien = hasSecondary ? Math.floor(marketValue * (0.1 + rng() * 0.2)) : undefined;
+  const secondaryLien = hasSecondary ? Math.floor(marketValue * ltvRatio * 0.15) : undefined;
   const hasTax = rng() < 0.2;
   const taxLien = hasTax ? Math.floor(2000 + rng() * 15000) : undefined;
+  
+  // Generate lender name for first lien
+  const lenderNames = ['Wells Fargo', 'Bank of America', 'Chase', 'Quicken Loans', 'Flagstar Bank', 'Huntington Bank'];
+  const lenderName = lenderNames[Math.floor(rng() * lenderNames.length)];
   
   // Calculate total debt
   const outstandingDebt = primaryLien + (secondaryLien || 0) + (taxLien || 0);
@@ -274,7 +318,8 @@ function generateProperty(index: number, cityConfig: CityConfig, rng: any): Auct
   const propertyType: PropertyType = rng() < 0.85 ? 'SINGLE_FAMILY' : 
                                      rng() < 0.95 ? 'MULTI_FAMILY' : 'CONDO';
   
-  return {
+  // Generate property object first for comparables
+  const property = {
     id: `prop_${index + 1}`,
     address,
     city: cityConfig.name,
@@ -293,12 +338,31 @@ function generateProperty(index: number, cityConfig: CityConfig, rng: any): Auct
     occupancyStatus: 'VACANT', // Set later
     renovationLevel,
     redemptionStatus: rng() < 0.1 ? 'IN_NEGOTIATION' : 'NONE',
+    // Enhanced lien information
     primaryLien,
     secondaryLien,
     taxLien,
+    lenderName,
+    hasSecondLien: hasSecondary,
+    hasThirdLien: hasTax,
+    firstLienAmount: primaryLien,
+    secondLienAmount: secondaryLien || 0,
+    thirdLienAmount: taxLien || 0,
+    // Comparables and analysis fields
+    comparables: [], // Will be set after property creation
+    actualMarketValue: marketValue, // Hidden true value
+    studentMarketValue: null,
+    studentLTV: null,
+    studentEquityEstimate: null,
+    // Research tracking
     researchedBy: new Set(),
     discoveredInfo: new Map()
   };
+  
+  // Generate comparables based on this property
+  property.comparables = generateComparables(property, cityConfig, rng);
+  
+  return property;
 }
 
 function determineRenovationLevel(value: number, yearBuilt: number, rng: any): RenovationLevel {
