@@ -1,0 +1,31 @@
+# Nuxt
+.nuxt
+.nitro
+.cache
+.output
+.env
+dist
+
+# Node
+node_modules
+*.log*
+.pnpm-debug.log*
+
+# IDE
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.vscode/*
+!.vscode/extensions.json
+
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Misc
+*.pem
