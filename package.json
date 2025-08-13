@@ -11,10 +11,10 @@
     "detroit",
     "foreclosure"
   ],
-  "homepage": "https://github.com/ourcityilab/our-city-auctions",
+  "homepage": "https://github.com/OurCityilab/our-city-auctions",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ourcityilab/our-city-auctions.git"
+    "url": "https://github.com/OurCityilab/our-city-auctions.git"
   },
   "license": "Educational",
   "scripts": {

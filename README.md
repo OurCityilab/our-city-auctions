@@ -157,8 +157,8 @@ Educational use license - See LICENSE file for details.
 ## 🚀 Deployment Instructions
 
 ### GitHub Setup
-1. Create repository: `https://github.com/ourcityilab/our-city-auctions`
-2. Push code: `git push -u origin main`
+1. Repository: `https://github.com/OurCityilab/our-city-auctions` ✅ Created
+2. Code pushed: `git push -u origin main` ✅ Complete
 
 ### Vercel Deployment  
 1. Import GitHub repo to Vercel
