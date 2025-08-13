@@ -4,11 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nuxtjs",
-  "functions": {
-    "app/**": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   },
@@ -17,11 +12,5 @@
       "NUXT_PUBLIC_APP_URL": "https://our-city-auctions.vercel.app",
       "NUXT_PUBLIC_SESSION_STORAGE_PREFIX": "oca_"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
-    }
-  ]
+  }
 }
