@@ -40,6 +40,7 @@
     "@nuxt/eslint": "^0.5.7",
     "@nuxt/icon": "^1.5.5",
     "@types/seedrandom": "^3.0.8",
+    "node-fetch": "^3.3.2",
     "typescript": "^5.6.2"
   },
   "engines": {
