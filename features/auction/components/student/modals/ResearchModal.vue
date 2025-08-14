@@ -440,6 +440,24 @@ const estimatedEquity = computed(() => {
   return calculateEquity(studentMarketValue.value, totalDebt.value)
 })
 
+const compsAnalysis = computed(() => {
+  if (!props.property.comparables || props.property.comparables.length === 0) {
+    return { average: 0, min: 0, max: 0, confidence: 'LOW' }
+  }
+  
+  const prices = props.property.comparables.map(c => c.soldPrice).filter(p => p > 0)
+  if (prices.length === 0) {
+    return { average: 0, min: 0, max: 0, confidence: 'LOW' }
+  }
+  
+  return {
+    average: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
+    min: Math.min(...prices),
+    max: Math.max(...prices),
+    confidence: prices.length >= 4 ? 'HIGH' : prices.length >= 3 ? 'MEDIUM' : 'LOW'
+  }
+})
+
 const ltvAssessment = computed(() => {
   return getLTVAssessment(parseFloat(calculatedLTV.value))
 })
@@ -478,14 +496,20 @@ function performResearch(level) {
   
   // For Level 1 and 2, use regular research
   const result = studentStore.performResearch(props.property.id, level)
-  if (result) {
-    console.log('Research successful:', result)
-  }
   return result
 }
 
 function calculateLTV() {
   // Triggers computed properties update
+}
+
+function getConfidenceColor(confidence) {
+  switch(confidence) {
+    case 'HIGH': return 'text-green-600'
+    case 'MEDIUM': return 'text-orange-600'
+    case 'LOW': return 'text-red-600'
+    default: return 'text-gray-600'
+  }
 }
 
 function getRenovationCost() {
