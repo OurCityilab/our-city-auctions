@@ -32,12 +32,7 @@ export default defineNuxtConfig({
 
   // Auto-imports configuration
   imports: {
-    dirs: ['stores', 'utils', 'types'],
-    imports: [
-      { name: 'formatCurrency', from: '~/utils/currency' },
-      { name: 'formatTime', from: '~/utils/time' },
-      { name: 'generateSessionCode', from: '~/utils/session' }
-    ]
+    dirs: ['stores', 'utils', 'types']
   },
   
   ui: {
