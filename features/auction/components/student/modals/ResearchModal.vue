@@ -1,8 +1,14 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="$emit('close')">
-    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[85vh] flex flex-col text-gray-900">
-      <!-- Fixed Header -->
-      <div class="p-6 pb-0 border-b flex-shrink-0">
+  <div class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black bg-opacity-50" @click="$emit('close')"></div>
+    
+    <!-- Modal - Use fixed positioning instead of flex -->
+    <div class="fixed bg-white rounded-lg shadow-xl w-full max-w-4xl text-gray-900" 
+         style="top: 5vh; left: 50%; transform: translateX(-50%); height: 90vh; display: flex; flex-direction: column;">
+      
+      <!-- Header - Fixed height -->
+      <div class="px-6 py-4 border-b" style="flex: 0 0 auto;">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold text-gray-900">Property Research - {{ property.address }}</h2>
           <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
@@ -14,8 +20,8 @@
         </div>
       </div>
       
-      <!-- Scrollable Content Area -->
-      <div class="flex-grow overflow-y-auto p-6 pt-4 text-gray-900" style="min-height: 0;">
+      <!-- Content - This MUST scroll -->
+      <div style="flex: 1 1 auto; overflow-y: auto; padding: 1.5rem; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
         <div class="space-y-4">
         <!-- Level 1: Basic Research -->
         <div class="border rounded-lg p-4">
@@ -316,8 +322,8 @@
         </div>
       </div>
       
-      <!-- Fixed Footer with Action Buttons -->
-      <div class="p-6 pt-4 border-t bg-gray-50 flex-shrink-0">
+      <!-- Footer - Fixed height -->
+      <div class="px-6 py-4 border-t bg-gray-50" style="flex: 0 0 auto;">
         <div class="flex gap-3">
           <button 
             @click="$emit('close')"
@@ -346,6 +352,27 @@
   </div>
 </template>
 
+<style scoped>
+/* Force the scrollable div to actually scroll */
+div[style*="overflow-y: auto"] {
+  overflow-y: scroll !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain;
+}
+
+/* Ensure fixed height calculation works */
+.fixed[style*="height: 90vh"] {
+  max-height: 90vh !important;
+  height: 90vh !important;
+}
+
+/* Ensure content is scrollable */
+.fixed > div[style*="flex: 1 1 auto"] {
+  overflow-y: scroll !important;
+  min-height: 0;
+}
+</style>
+
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useStudentStore } from '~/stores/studentStore'
@@ -372,7 +399,7 @@ const emit = defineEmits(['close', 'create-sell-sheet'])
 const studentStore = useStudentStore()
 const gameStore = useGameStore()
 
-// ESC key handler for modal close
+// ESC key handler for modal close and debug scrolling
 onMounted(() => {
   const handleEsc = (e) => {
     if (e.key === 'Escape') {
@@ -380,6 +407,39 @@ onMounted(() => {
     }
   }
   window.addEventListener('keydown', handleEsc)
+  
+  // Debug scroll behavior
+  const debugScroll = () => {
+    const modal = document.querySelector('.fixed[style*="height: 90vh"]')
+    const content = document.querySelector('div[style*="overflow-y: auto"]')
+    
+    if (modal && content) {
+      console.log('=== ResearchModal Scroll Debug ===')
+      console.log('Modal element:', modal)
+      console.log('Modal height:', modal.offsetHeight, 'px')
+      console.log('Content element:', content)
+      console.log('Content scrollHeight:', content.scrollHeight, 'px')
+      console.log('Content clientHeight:', content.clientHeight, 'px')
+      console.log('Content offsetHeight:', content.offsetHeight, 'px')
+      console.log('Should scroll?', content.scrollHeight > content.clientHeight)
+      console.log('Computed overflow-y:', window.getComputedStyle(content).overflowY)
+      
+      // Force scroll if needed
+      if (content.scrollHeight > content.clientHeight) {
+        content.style.overflowY = 'scroll'
+        console.log('✅ Forced scroll applied')
+      } else {
+        console.log('⚠️ Content fits within container, no scroll needed')
+      }
+    } else {
+      console.error('❌ Could not find modal or content elements')
+    }
+  }
+  
+  // Run debug after Vue updates DOM
+  setTimeout(debugScroll, 100)
+  // Run again after any async content loads
+  setTimeout(debugScroll, 500)
   
   // Cleanup on unmount
   onUnmounted(() => {
