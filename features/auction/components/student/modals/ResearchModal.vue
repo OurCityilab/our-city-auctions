@@ -381,7 +381,6 @@ import {
   calculateLTV as calcLTV,
   calculateEquity,
   getLTVAssessment,
-  analyzeComparables,
   assessEstimateAccuracy,
   calculateMaxBid,
   calculateTotalDebt
@@ -427,20 +426,6 @@ const totalDebt = computed(() => {
 })
 
 const compsAnalysis = computed(() => {
-  if (!props.property.comparables) return { average: 0, min: 0, max: 0, confidence: 'LOW' }
-  return analyzeComparables(props.property.comparables)
-})
-
-const calculatedLTV = computed(() => {
-  if (studentMarketValue.value === 0) return 0
-  return calcLTV(totalDebt.value, studentMarketValue.value)
-})
-
-const estimatedEquity = computed(() => {
-  return calculateEquity(studentMarketValue.value, totalDebt.value)
-})
-
-const compsAnalysis = computed(() => {
   if (!props.property.comparables || props.property.comparables.length === 0) {
     return { average: 0, min: 0, max: 0, confidence: 'LOW' }
   }
@@ -456,6 +441,15 @@ const compsAnalysis = computed(() => {
     max: Math.max(...prices),
     confidence: prices.length >= 4 ? 'HIGH' : prices.length >= 3 ? 'MEDIUM' : 'LOW'
   }
+})
+
+const calculatedLTV = computed(() => {
+  if (studentMarketValue.value === 0) return 0
+  return calcLTV(totalDebt.value, studentMarketValue.value)
+})
+
+const estimatedEquity = computed(() => {
+  return calculateEquity(studentMarketValue.value, totalDebt.value)
 })
 
 const ltvAssessment = computed(() => {
