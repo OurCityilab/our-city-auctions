@@ -25,11 +25,11 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGameStore } from '~/stores/gameStore'
 import { useModeratorStore } from '~/stores/moderatorStore'
-import ModeratorConsole from '~/features/auction/components/moderator/ModeratorConsole.vue'
+import ModeratorConsole from '~/features/auction/components/moderator/ModeratorConsoleSafeguard.vue'
 
 const route = useRoute()
 const router = useRouter()

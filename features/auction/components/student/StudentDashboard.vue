@@ -118,7 +118,7 @@ import PreviewPhase from './phases/PreviewPhase.vue'
 import AnnouncementPhase from './phases/AnnouncementPhase.vue'
 import BankingPhase from './phases/BankingPhase.vue'
 import BiddingPhase from './phases/BiddingPhase.vue'
-import RedemptionPhase from './phases/RedemptionPhase.vue'
+import RedemptionPhase from './phases/RedemptionPhaseSafetyCheck.vue'
 import CompletePhase from './phases/CompletePhase.vue'
 
 // Modal Components

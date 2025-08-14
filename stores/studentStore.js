@@ -17,6 +17,8 @@ export const useStudentStore = defineStore('student', {
     sortBy: 'address',
     withdrawAmount: 100000, // Default withdrawal amount
     bidAmount: 0,
+    // Manual bid tracking for bidding phase
+    manualBids: new Map(), // propertyId -> { won: boolean, amount: number, confirmed: boolean }
     // Redemption phase data
     propertyStrategies: new Map(), // propertyId -> { strategy, negotiation }
     portfolioSummary: null,
@@ -253,6 +255,57 @@ export const useStudentStore = defineStore('student', {
       return success
     },
     
+    // Manual bid tracking methods for the new bidding system
+    recordManualWin(propertyId, amount) {
+      const gameStore = useGameStore()
+      if (!this.currentStudent) return false
+      
+      // Record in manual bids map
+      this.manualBids.set(propertyId, {
+        won: true,
+        amount: amount,
+        confirmed: true
+      })
+      
+      // Update student's won properties
+      if (!this.currentStudent.propertiesWon) {
+        this.currentStudent.propertiesWon = []
+      }
+      if (!this.currentStudent.propertiesWon.includes(propertyId)) {
+        this.currentStudent.propertiesWon.push(propertyId)
+      }
+      
+      // Update cash available
+      this.currentStudent.cashAvailable = Math.max(0, this.currentStudent.cashAvailable - amount)
+      
+      // Save to game store
+      gameStore.recordManualBid(this.currentStudent.id, propertyId, amount, true)
+      
+      this.saveStudentData()
+      return true
+    },
+    
+    recordManualLoss(propertyId) {
+      // Record in manual bids map
+      this.manualBids.set(propertyId, {
+        won: false,
+        amount: 0,
+        confirmed: true
+      })
+      
+      // Remove from won properties if it was there
+      if (this.currentStudent.propertiesWon) {
+        this.currentStudent.propertiesWon = this.currentStudent.propertiesWon.filter(id => id !== propertyId)
+      }
+      
+      this.saveStudentData()
+      return true
+    },
+    
+    getManualBids() {
+      return this.manualBids
+    },
+    
     setSelectedProperty(property) {
       this.selectedProperty = property
     },
@@ -275,6 +328,7 @@ export const useStudentStore = defineStore('student', {
         propertyAnalyses: Array.from(this.propertyAnalyses.entries()),
         filters: this.filters,
         sortBy: this.sortBy,
+        manualBids: Array.from(this.manualBids.entries()),
         propertyStrategies: Array.from(this.propertyStrategies.entries()),
         portfolioSummary: this.portfolioSummary
       }
@@ -293,6 +347,7 @@ export const useStudentStore = defineStore('student', {
         this.propertyAnalyses = new Map(data.propertyAnalyses || [])
         this.filters = data.filters || this.filters
         this.sortBy = data.sortBy || this.sortBy
+        this.manualBids = new Map(data.manualBids || [])
         this.propertyStrategies = new Map(data.propertyStrategies || [])
         this.portfolioSummary = data.portfolioSummary || null
       }

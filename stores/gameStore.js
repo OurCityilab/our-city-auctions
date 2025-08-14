@@ -12,6 +12,30 @@ const PHASE_CODES = {
   COMPLETE: 'FINAL'
 }
 
+// Preset session configurations for standard Wayne County auctions
+const PRESET_SESSIONS = {
+  'WAYNE-F24': {
+    name: 'Wayne County Fall 2024',
+    seed: 'fall2024wayne',
+    propertyOrder: null, // Will use default seed order
+    settings: {
+      startingCash: 100000,
+      maxWithdrawal: 500000,
+      researchCredits: 30
+    }
+  },
+  'WAYNE-S25': {
+    name: 'Wayne County Spring 2025',
+    seed: 'spring2025wayne',
+    propertyOrder: null, // Will use default seed order
+    settings: {
+      startingCash: 100000,
+      maxWithdrawal: 500000,
+      researchCredits: 30
+    }
+  }
+}
+
 export const useGameStore = defineStore('game', {
   state: () => ({
     session: null,
@@ -65,8 +89,23 @@ export const useGameStore = defineStore('game', {
 
   actions: {
     createSession(code, moderatorId) {
-      // Generate 50 properties using the existing property generator
-      const properties = generateSeededProperties(code, 50)
+      // Check if this is a preset session
+      const preset = PRESET_SESSIONS[code]
+      const seed = preset ? preset.seed : code
+      const settings = preset ? preset.settings : {
+        startingCash: 100000,
+        maxWithdrawal: 500000,
+        researchCredits: 30
+      }
+      
+      // Generate 50 properties using the seed
+      const properties = generateSeededProperties(seed, 50)
+      
+      // If preset has a specific property order, reorder them
+      if (preset && preset.propertyOrder) {
+        // Sort properties according to preset order
+        // For now, we'll use the default seed order
+      }
       
       this.session = {
         code,
@@ -79,6 +118,9 @@ export const useGameStore = defineStore('game', {
         winners: [],
         marketEvents: [],
         researchRecords: new Map(), // Track who researched what
+        settings,
+        isPreset: !!preset,
+        presetName: preset?.name || null,
         createdAt: Date.now()
       }
       
@@ -122,13 +164,20 @@ export const useGameStore = defineStore('game', {
       const studentId = `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       const paddleNumber = this.session.students.size + 1
       
+      // Use session settings if available
+      const settings = this.session.settings || {
+        startingCash: 100000,
+        maxWithdrawal: 500000,
+        researchCredits: 30
+      }
+      
       const student = {
         id: studentId,
         name: studentName,
         paddleNumber,
-        cashAvailable: 100000, // Start with $100k
+        cashAvailable: settings.startingCash,
         cashWithdrawn: 0,
-        researchCredits: 30,
+        researchCredits: settings.researchCredits,
         propertiesWon: [],
         totalSpent: 0,
         priorityList: [],
@@ -495,6 +544,50 @@ export const useGameStore = defineStore('game', {
     },
     
     // Redemption Phase Methods
+    recordManualBid(studentId, propertyId, amount, won) {
+      if (!this.session) return false
+      
+      const student = this.session.students.get(studentId)
+      if (!student) return false
+      
+      if (won) {
+        // Record as winner
+        const existingWinnerIndex = this.session.winners.findIndex(
+          w => w.propertyId === propertyId
+        )
+        
+        if (existingWinnerIndex >= 0) {
+          this.session.winners[existingWinnerIndex] = {
+            propertyId,
+            studentId,
+            winningBid: amount,
+            timestamp: Date.now()
+          }
+        } else {
+          this.session.winners.push({
+            propertyId,
+            studentId,
+            winningBid: amount,
+            timestamp: Date.now()
+          })
+        }
+        
+        // Update student's won properties
+        if (!student.propertiesWon) {
+          student.propertiesWon = []
+        }
+        if (!student.propertiesWon.includes(propertyId)) {
+          student.propertiesWon.push(propertyId)
+        }
+        
+        // Update cash
+        student.cashAvailable = Math.max(0, student.cashAvailable - amount)
+      }
+      
+      this.saveToLocalStorage()
+      return true
+    },
+    
     setPropertyExitStrategy(propertyId, studentId, strategy) {
       if (!this.propertyStrategies.has(propertyId)) {
         this.propertyStrategies.set(propertyId, {})
@@ -604,6 +697,76 @@ export const useGameStore = defineStore('game', {
       })
       
       return portfolios
+    },
+    
+    // Add missing methods for moderator console
+    transitionToPhase(phase) {
+      if (!this.session) {
+        console.error('No session active')
+        return false
+      }
+      
+      // Update the session phase
+      this.session.currentPhase = phase
+      this.session.phaseStartTime = Date.now()
+      this.phaseStartTime = Date.now()
+      
+      console.log(`Transitioned to phase: ${phase}`)
+      
+      // If moving to ANNOUNCEMENT, reveal opening bids
+      if (phase === 'ANNOUNCEMENT') {
+        this.revealOpeningBids()
+      }
+      
+      // Save to localStorage
+      this.saveToLocalStorage()
+      
+      return true
+    },
+    
+    addManualStudent(name) {
+      if (!this.session) return null
+      
+      const studentId = `student_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const paddleNumber = this.session.students.size + 1
+      
+      const settings = this.session.settings || {
+        startingCash: 100000,
+        maxWithdrawal: 500000,
+        researchCredits: 30
+      }
+      
+      const student = {
+        id: studentId,
+        name: name,
+        paddleNumber,
+        cashAvailable: settings.startingCash,
+        cashWithdrawn: 0,
+        researchCredits: settings.researchCredits,
+        propertiesWon: [],
+        totalSpent: 0,
+        priorityList: [],
+        analyses: new Map(),
+        joinedAt: Date.now()
+      }
+      
+      this.session.students.set(studentId, student)
+      this.saveToLocalStorage()
+      
+      console.log(`Added manual student: ${name} with paddle #${paddleNumber}`)
+      
+      return student
+    },
+    
+    removeStudent(studentId) {
+      if (!this.session) return false
+      
+      const deleted = this.session.students.delete(studentId)
+      if (deleted) {
+        console.log(`Removed student: ${studentId}`)
+        this.saveToLocalStorage()
+      }
+      return deleted
     }
   }
 })
