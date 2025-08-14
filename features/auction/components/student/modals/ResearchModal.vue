@@ -1,17 +1,22 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">Property Research - {{ property.address }}</h2>
-        <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="$emit('close')">
+    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[calc(100vh-2rem)] flex flex-col">
+      <!-- Fixed Header -->
+      <div class="p-6 pb-0 border-b">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Property Research - {{ property.address }}</h2>
+          <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+        </div>
+        
+        <div class="mb-4 p-3 bg-yellow-50 rounded flex justify-between items-center">
+          <p class="text-sm">Research Credits Remaining: <span class="font-bold text-lg">{{ studentStore.researchCreditsRemaining }}</span>/30</p>
+          <p class="text-xs text-gray-600">Each research level costs 2 credits</p>
+        </div>
       </div>
       
-      <div class="mb-4 p-3 bg-yellow-50 rounded flex justify-between items-center">
-        <p class="text-sm">Research Credits Remaining: <span class="font-bold text-lg">{{ studentStore.researchCreditsRemaining }}</span>/30</p>
-        <p class="text-xs text-gray-600">Each research level costs 2 credits</p>
-      </div>
-      
-      <div class="space-y-4">
+      <!-- Scrollable Content Area -->
+      <div class="flex-1 overflow-y-auto p-6 pt-4">
+        <div class="space-y-4">
         <!-- Level 1: Basic Research -->
         <div class="border rounded-lg p-4">
           <div class="flex justify-between items-center mb-3">
@@ -308,23 +313,34 @@
             </p>
           </div>
         </div>
+        </div>
       </div>
       
-      <!-- Action Buttons -->
-      <div class="mt-6 flex gap-3">
-        <button 
-          @click="$emit('close')"
-          class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
-        >
-          Close
-        </button>
-        <button 
-          v-if="researchData?.level >= 2 && studentMarketValue > 0"
-          @click="createSellSheet"
-          class="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          Create Sell Sheet
-        </button>
+      <!-- Fixed Footer with Action Buttons -->
+      <div class="p-6 pt-4 border-t bg-gray-50">
+        <div class="flex gap-3">
+          <button 
+            @click="$emit('close')"
+            class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+          >
+            Close
+          </button>
+          <button 
+            v-if="researchData?.level >= 2"
+            @click="saveCompsAnalysis"
+            :disabled="!studentMarketValue"
+            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 transition-colors"
+          >
+            Save Market Analysis
+          </button>
+          <button 
+            v-if="researchData?.level >= 2 && studentMarketValue > 0"
+            @click="createSellSheet"
+            class="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+          >
+            Create Sell Sheet
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -512,22 +528,35 @@ function getConfidenceColor(confidence) {
 </script>
 
 <style scoped>
-/* Custom scrollbar for modal */
-::-webkit-scrollbar {
+/* Custom scrollbar for modal content */
+.overflow-y-auto::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
+.overflow-y-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb {
+.overflow-y-auto::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Ensure smooth scrolling */
+.overflow-y-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-height: 768px) {
+  .max-h-\[calc\(100vh-2rem\)\] {
+    max-height: calc(100vh - 1rem);
+  }
 }
 </style>
