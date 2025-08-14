@@ -32,6 +32,16 @@ export type PropertyType =
   | 'MULTI_FAMILY' 
   | 'VACANT_LOT';
 
+export interface CityConfig {
+  name: CityName;
+  weight: number;
+  minValue: number;
+  maxValue: number;
+  variance: number;
+  hasBlockVariance?: boolean;
+  typicalOccupancy: number;
+}
+
 export interface AuctionProperty {
   // Core Identity
   id: string;
@@ -71,9 +81,22 @@ export interface AuctionProperty {
   secondaryLien?: number;
   tertiaryLien?: number;
   taxLien?: number;
+  lenderName?: string;
+  hasSecondLien?: boolean;
+  hasThirdLien?: boolean;
+  firstLienAmount?: number;
+  secondLienAmount?: number;
+  thirdLienAmount?: number;
   
   // Occupant (if occupied)
   occupant?: OccupantProfile;
+  
+  // Comparables and market analysis
+  comparables?: any[];
+  actualMarketValue?: number;
+  studentMarketValue?: number | null;
+  studentLTV?: number | null;
+  studentEquityEstimate?: number | null;
   
   // Research Tracking
   researchedBy: Set<string>; // Student IDs who researched

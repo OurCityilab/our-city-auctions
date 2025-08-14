@@ -11,7 +11,7 @@ import type {
   PropertyType,
   OccupantArchetype,
   PreferredOutcome
-} from '../types/auction.types';
+} from '~/types/auction.types';
 
 // ============================================================================
 // City Configuration & Distribution

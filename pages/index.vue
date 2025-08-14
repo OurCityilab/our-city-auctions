@@ -6,6 +6,13 @@
         <p class="text-xl">Educational Real Estate Auction Simulation</p>
       </div>
 
+      <!-- Error Display -->
+      <div v-if="error" class="max-w-4xl mx-auto mb-4">
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {{ error }}
+        </div>
+      </div>
+
       <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
         <!-- Create Session -->
         <div class="bg-white rounded-lg shadow-xl p-8">
@@ -117,34 +124,112 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useGameStore } from '~/stores/gameStore'
 
 const router = useRouter()
+const route = useRoute()
+const gameStore = useGameStore()
 const newSessionCode = ref('')
 const joinCode = ref('')
 const studentName = ref('')
+const error = ref('')
 
 const presetSessions = ['WAYNE-F24', 'WAYNE-S25', 'DEMO', 'QUICK']
 
+// Debug watchers to ensure reactivity
+watch(newSessionCode, (val) => {
+  console.log('New session code typed:', val)
+  error.value = '' // Clear error when typing
+})
+
+watch(joinCode, (val) => {
+  console.log('Join code typed:', val)
+  error.value = '' // Clear error when typing
+})
+
+watch(studentName, (val) => {
+  console.log('Student name typed:', val)
+  error.value = '' // Clear error when typing
+})
+
 function createSession() {
+  error.value = ''
   if (newSessionCode.value) {
-    router.push(`/moderator?code=${newSessionCode.value}`)
+    // Ensure code is uppercase
+    const code = newSessionCode.value.toUpperCase()
+    console.log('Creating session with code:', code)
+    router.push(`/moderator?code=${code}`)
+  } else {
+    error.value = 'Please enter a session code'
   }
 }
 
 function quickStart(code, role) {
-  router.push(`/${role}?code=${code}`)
-}
-
-function joinSession() {
-  if (joinCode.value && studentName.value) {
+  error.value = ''
+  console.log('Quick start:', code, role)
+  
+  if (role === 'moderator') {
+    // When starting as moderator, this will create the session
+    router.push(`/moderator?code=${code}`)
+  } else {
+    // For student, just navigate - the student page will handle joining
     const studentId = 'student_' + Date.now()
-    router.push(`/student?code=${joinCode.value}&id=${studentId}&name=${encodeURIComponent(studentName.value)}`)
+    router.push(`/student?code=${code}&id=${studentId}&name=Quick Start Student`)
   }
 }
 
+function joinSession() {
+  error.value = ''
+  
+  if (!joinCode.value || !studentName.value) {
+    error.value = 'Please enter both session code and your name'
+    return
+  }
+  
+  const code = joinCode.value.toUpperCase()
+  console.log('Joining session:', code, 'as', studentName.value)
+  
+  // Check if session exists
+  const sessionExists = gameStore.loadSession(code)
+  
+  if (!sessionExists) {
+    // Special handling for WAYNE-F24 and DEMO - auto-create if they don't exist
+    if (code === 'WAYNE-F24' || code === 'DEMO') {
+      console.log('Auto-creating session for:', code)
+      gameStore.createSession(code, 'moderator_auto')
+    } else {
+      error.value = `Session ${code} not found. Please check the code or ask your moderator to create it first.`
+      return
+    }
+  }
+  
+  const studentId = 'student_' + Date.now()
+  router.push(`/student?code=${code}&id=${studentId}&name=${encodeURIComponent(studentName.value)}`)
+}
+
 function joinDemo() {
+  error.value = ''
+  console.log('Joining demo session')
+  
+  // Ensure DEMO session exists
+  const sessionExists = gameStore.loadSession('DEMO')
+  if (!sessionExists) {
+    console.log('Creating DEMO session')
+    gameStore.createSession('DEMO', 'moderator_demo')
+  }
+  
   const studentId = 'student_' + Date.now()
   router.push(`/student?code=DEMO&id=${studentId}&name=Demo Student`)
 }
+
+// Check URL for error messages
+onMounted(() => {
+  if (route.query.error) {
+    error.value = route.query.error
+  }
+  
+  // Log to verify input fields are working
+  console.log('Landing page mounted, checking input fields...')
+})
 </script>

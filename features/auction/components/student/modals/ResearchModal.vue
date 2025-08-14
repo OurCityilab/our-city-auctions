@@ -399,7 +399,7 @@ const emit = defineEmits(['close', 'create-sell-sheet'])
 const studentStore = useStudentStore()
 const gameStore = useGameStore()
 
-// ESC key handler for modal close and debug scrolling
+// ESC key handler for modal close
 onMounted(() => {
   const handleEsc = (e) => {
     if (e.key === 'Escape') {
@@ -407,39 +407,6 @@ onMounted(() => {
     }
   }
   window.addEventListener('keydown', handleEsc)
-  
-  // Debug scroll behavior
-  const debugScroll = () => {
-    const modal = document.querySelector('.fixed[style*="height: 90vh"]')
-    const content = document.querySelector('div[style*="overflow-y: auto"]')
-    
-    if (modal && content) {
-      console.log('=== ResearchModal Scroll Debug ===')
-      console.log('Modal element:', modal)
-      console.log('Modal height:', modal.offsetHeight, 'px')
-      console.log('Content element:', content)
-      console.log('Content scrollHeight:', content.scrollHeight, 'px')
-      console.log('Content clientHeight:', content.clientHeight, 'px')
-      console.log('Content offsetHeight:', content.offsetHeight, 'px')
-      console.log('Should scroll?', content.scrollHeight > content.clientHeight)
-      console.log('Computed overflow-y:', window.getComputedStyle(content).overflowY)
-      
-      // Force scroll if needed
-      if (content.scrollHeight > content.clientHeight) {
-        content.style.overflowY = 'scroll'
-        console.log('✅ Forced scroll applied')
-      } else {
-        console.log('⚠️ Content fits within container, no scroll needed')
-      }
-    } else {
-      console.error('❌ Could not find modal or content elements')
-    }
-  }
-  
-  // Run debug after Vue updates DOM
-  setTimeout(debugScroll, 100)
-  // Run again after any async content loads
-  setTimeout(debugScroll, 500)
   
   // Cleanup on unmount
   onUnmounted(() => {
@@ -539,7 +506,7 @@ function saveCompsAnalysis() {
     timestamp: Date.now()
   }
   
-  studentStore.saveAnalysis(props.property.id, analysis)
+  studentStore.savePropertyAnalysis(props.property.id, analysis)
   
   // Also save to game store for tracking
   gameStore.savePropertyAnalysis?.(props.property.id, gameStore.currentStudentId, analysis)
