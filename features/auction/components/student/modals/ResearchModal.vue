@@ -561,15 +561,6 @@ function formatRenovation(level) {
   if (!level) return 'Unknown'
   return level.replace(/_/g, ' ')
 }
-
-function getConfidenceColor(confidence) {
-  switch(confidence) {
-    case 'HIGH': return 'text-green-600'
-    case 'MEDIUM': return 'text-yellow-600'
-    case 'LOW': return 'text-red-600'
-    default: return 'text-gray-600'
-  }
-}
 </script>
 
 <style scoped>
