@@ -1,26 +1,26 @@
 <template>
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="$emit('close')">
-    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[calc(100vh-2rem)] flex flex-col">
+    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[85vh] flex flex-col text-gray-900">
       <!-- Fixed Header -->
-      <div class="p-6 pb-0 border-b">
+      <div class="p-6 pb-0 border-b flex-shrink-0">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">Property Research - {{ property.address }}</h2>
+          <h2 class="text-xl font-bold text-gray-900">Property Research - {{ property.address }}</h2>
           <button @click="$emit('close')" class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
         </div>
         
         <div class="mb-4 p-3 bg-yellow-50 rounded flex justify-between items-center">
-          <p class="text-sm">Research Credits Remaining: <span class="font-bold text-lg">{{ studentStore.researchCreditsRemaining }}</span>/30</p>
+          <p class="text-sm text-gray-900">Research Credits Remaining: <span class="font-bold text-lg text-gray-900">{{ studentStore.researchCreditsRemaining }}</span>/30</p>
           <p class="text-xs text-gray-600">Each research level costs 2 credits</p>
         </div>
       </div>
       
       <!-- Scrollable Content Area -->
-      <div class="flex-1 overflow-y-auto p-6 pt-4">
+      <div class="flex-grow overflow-y-auto p-6 pt-4 text-gray-900" style="min-height: 0;">
         <div class="space-y-4">
         <!-- Level 1: Basic Research -->
         <div class="border rounded-lg p-4">
           <div class="flex justify-between items-center mb-3">
-            <h3 class="font-semibold text-lg">📋 Level 1: Basic Property Information</h3>
+            <h3 class="font-semibold text-lg text-gray-900">📋 Level 1: Basic Property Information</h3>
             <button 
               v-if="!researchData || researchData.level < 1"
               @click="performResearch(1)"
@@ -36,27 +36,27 @@
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p class="text-gray-600">Occupancy Status:</p>
-                <p class="font-semibold">{{ formatOccupancy(researchData.occupancyStatus) }}</p>
+                <p class="font-semibold text-gray-900">{{ formatOccupancy(researchData.occupancyStatus) }}</p>
               </div>
               <div>
                 <p class="text-gray-600">Property Type:</p>
-                <p class="font-semibold">{{ property.propertyType?.replace('_', ' ') || 'Unknown' }}</p>
+                <p class="font-semibold text-gray-900">{{ property.propertyType?.replace('_', ' ') || 'Unknown' }}</p>
               </div>
               <div>
                 <p class="text-gray-600">Bedrooms/Bathrooms:</p>
-                <p class="font-semibold">{{ property.bedrooms }}BR / {{ property.bathrooms }}BA</p>
+                <p class="font-semibold text-gray-900">{{ property.bedrooms }}BR / {{ property.bathrooms }}BA</p>
               </div>
               <div>
                 <p class="text-gray-600">Square Feet:</p>
-                <p class="font-semibold">{{ property.squareFeet?.toLocaleString() || 'N/A' }}</p>
+                <p class="font-semibold text-gray-900">{{ property.squareFeet?.toLocaleString() || 'N/A' }}</p>
               </div>
             </div>
             
             <div v-if="researchData.occupant" class="border-t pt-3">
-              <p class="text-sm font-semibold mb-2">Occupant Information:</p>
+              <p class="text-sm font-semibold mb-2 text-gray-900">Occupant Information:</p>
               <div class="grid grid-cols-2 gap-2 text-sm">
-                <p><span class="text-gray-600">Name:</span> {{ researchData.occupant.name }}</p>
-                <p><span class="text-gray-600">Preference:</span> {{ formatPreference(researchData.occupant.preferredOutcome) }}</p>
+                <p class="text-gray-900"><span class="text-gray-600">Name:</span> {{ researchData.occupant.name }}</p>
+                <p class="text-gray-900"><span class="text-gray-600">Preference:</span> {{ formatPreference(researchData.occupant.preferredOutcome) }}</p>
               </div>
             </div>
           </div>
@@ -65,7 +65,7 @@
         <!-- Level 2: Title Search & Comparables -->
         <div class="border rounded-lg p-4">
           <div class="flex justify-between items-center mb-3">
-            <h3 class="font-semibold text-lg">🏘️ Level 2: Title Search & Comparable Sales</h3>
+            <h3 class="font-semibold text-lg text-gray-900">🏘️ Level 2: Title Search & Comparable Sales</h3>
             <button 
               v-if="researchData?.level === 1"
               @click="performResearch(2)"
@@ -81,23 +81,23 @@
           <div v-if="researchData?.level >= 2" class="space-y-4">
             <!-- Liens Discovery -->
             <div class="bg-red-50 rounded p-4">
-              <h4 class="font-semibold mb-3">📋 Outstanding Liens & Debt</h4>
+              <h4 class="font-semibold mb-3 text-gray-900">📋 Outstanding Liens & Debt</h4>
               <div class="space-y-2">
                 <div class="flex justify-between text-sm">
-                  <span>1st Mortgage ({{ property.lenderName || 'Bank' }}):</span>
-                  <span class="font-bold">${{ (property.firstLienAmount || 0).toLocaleString() }}</span>
+                  <span class="text-gray-900">1st Mortgage ({{ property.lenderName || 'Bank' }}):</span>
+                  <span class="font-bold text-gray-900">${{ (property.firstLienAmount || 0).toLocaleString() }}</span>
                 </div>
                 <div v-if="property.hasSecondLien" class="flex justify-between text-sm">
-                  <span>2nd Mortgage/HELOC:</span>
-                  <span class="font-bold">${{ (property.secondLienAmount || 0).toLocaleString() }}</span>
+                  <span class="text-gray-900">2nd Mortgage/HELOC:</span>
+                  <span class="font-bold text-gray-900">${{ (property.secondLienAmount || 0).toLocaleString() }}</span>
                 </div>
                 <div v-if="property.hasThirdLien" class="flex justify-between text-sm">
-                  <span>Tax Lien:</span>
-                  <span class="font-bold">${{ (property.thirdLienAmount || 0).toLocaleString() }}</span>
+                  <span class="text-gray-900">Tax Lien:</span>
+                  <span class="font-bold text-gray-900">${{ (property.thirdLienAmount || 0).toLocaleString() }}</span>
                 </div>
                 <div class="border-t pt-2 mt-2">
                   <div class="flex justify-between font-bold">
-                    <span>Total Outstanding Debt:</span>
+                    <span class="text-gray-900">Total Outstanding Debt:</span>
                     <span class="text-red-600">${{ totalDebt.toLocaleString() }}</span>
                   </div>
                 </div>
@@ -106,17 +106,17 @@
 
             <!-- Comparable Sales -->
             <div class="bg-blue-50 rounded p-4">
-              <h4 class="font-semibold mb-3">🏠 Comparable Sales (Last 6 Months)</h4>
+              <h4 class="font-semibold mb-3 text-gray-900">🏠 Comparable Sales (Last 6 Months)</h4>
               <div class="space-y-2">
                 <div v-for="(comp, index) in property.comparables?.slice(0, 5)" :key="index" 
                      class="bg-white p-3 rounded border">
                   <div class="flex justify-between items-start">
                     <div class="flex-1">
-                      <p class="font-medium text-sm">{{ comp.address }}</p>
+                      <p class="font-medium text-sm text-gray-900">{{ comp.address }}</p>
                       <p class="text-xs text-gray-600 mt-1">
                         📍 {{ comp.distance }} mi away | 📅 {{ comp.daysAgo }} days ago
                       </p>
-                      <p class="text-xs mt-1">
+                      <p class="text-xs mt-1 text-gray-700">
                         {{ comp.bedrooms }}BR/{{ comp.bathrooms }}BA | {{ comp.squareFeet?.toLocaleString() }} sqft | {{ comp.condition }}
                       </p>
                     </div>
@@ -133,11 +133,11 @@
                 <div class="grid grid-cols-3 gap-3 text-sm">
                   <div class="text-center">
                     <p class="text-gray-600">Average</p>
-                    <p class="font-bold">${{ compsAnalysis.average.toLocaleString() }}</p>
+                    <p class="font-bold text-gray-900">${{ compsAnalysis.average.toLocaleString() }}</p>
                   </div>
                   <div class="text-center">
                     <p class="text-gray-600">Range</p>
-                    <p class="font-bold text-xs">${{ compsAnalysis.min.toLocaleString() }} - ${{ compsAnalysis.max.toLocaleString() }}</p>
+                    <p class="font-bold text-xs text-gray-900">${{ compsAnalysis.min.toLocaleString() }} - ${{ compsAnalysis.max.toLocaleString() }}</p>
                   </div>
                   <div class="text-center">
                     <p class="text-gray-600">Confidence</p>
@@ -149,10 +149,10 @@
 
             <!-- Student's Market Value Analysis -->
             <div class="bg-yellow-50 rounded p-4">
-              <h4 class="font-semibold mb-3">📊 Your Market Value Analysis</h4>
+              <h4 class="font-semibold mb-3 text-gray-900">📊 Your Market Value Analysis</h4>
               <div class="space-y-3">
                 <div>
-                  <label class="text-sm font-medium">Based on comps, your estimated market value:</label>
+                  <label class="text-sm font-medium text-gray-900">Based on comps, your estimated market value:</label>
                   <div class="flex gap-2 mt-1">
                     <input 
                       v-model.number="studentMarketValue"
@@ -175,7 +175,7 @@
                   <!-- Accuracy Assessment -->
                   <div class="p-3 bg-white rounded">
                     <div class="flex justify-between text-sm mb-2">
-                      <span>Your estimate vs. comps:</span>
+                      <span class="text-gray-900">Your estimate vs. comps:</span>
                       <span :class="estimateAccuracy.color" class="font-bold">
                         {{ estimateAccuracy.message }}
                       </span>
@@ -203,32 +203,32 @@
 
                 <!-- Maximum Bid Calculation -->
                 <div v-if="studentMarketValue > 0" class="mt-4 p-4 bg-green-50 rounded">
-                  <h5 class="font-semibold mb-2">💰 Maximum Bid Recommendation</h5>
+                  <h5 class="font-semibold mb-2 text-gray-900">💰 Maximum Bid Recommendation</h5>
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
-                      <span>Your Market Value Estimate:</span>
-                      <span>${{ studentMarketValue.toLocaleString() }}</span>
+                      <span class="text-gray-900">Your Market Value Estimate:</span>
+                      <span class="text-gray-900">${{ studentMarketValue.toLocaleString() }}</span>
                     </div>
                     <div class="flex justify-between">
-                      <span>Target Profit Margin (20%):</span>
+                      <span class="text-gray-900">Target Profit Margin (20%):</span>
                       <span class="text-red-600">-${{ Math.round(studentMarketValue * 0.2).toLocaleString() }}</span>
                     </div>
                     <div class="flex justify-between">
-                      <span>Estimated Renovation:</span>
+                      <span class="text-gray-900">Estimated Renovation:</span>
                       <span class="text-red-600">-${{ getRenovationCost().toLocaleString() }}</span>
                     </div>
                     <div class="flex justify-between">
-                      <span>Transaction Costs (10%):</span>
+                      <span class="text-gray-900">Transaction Costs (10%):</span>
                       <span class="text-red-600">-${{ Math.round(studentMarketValue * 0.1).toLocaleString() }}</span>
                     </div>
                     <div class="flex justify-between">
-                      <span>LTV Risk Adjustment:</span>
+                      <span class="text-gray-900">LTV Risk Adjustment:</span>
                       <span :class="maxBidCalculation.riskMultiplier < 0.7 ? 'text-red-600' : 'text-green-600'">
                         {{ (maxBidCalculation.riskMultiplier * 100).toFixed(0) }}%
                       </span>
                     </div>
                     <div class="border-t pt-2 flex justify-between font-bold">
-                      <span>Maximum Profitable Bid:</span>
+                      <span class="text-gray-900">Maximum Profitable Bid:</span>
                       <span class="text-green-700 text-lg">${{ maxBidCalculation.maxBid.toLocaleString() }}</span>
                     </div>
                     <p class="text-xs text-gray-600 mt-2">{{ maxBidCalculation.recommendation }}</p>
@@ -248,15 +248,15 @@
 
             <!-- Additional Property Details -->
             <div class="bg-gray-50 rounded p-4">
-              <h4 class="font-semibold mb-3">🔧 Property Condition</h4>
+              <h4 class="font-semibold mb-3 text-gray-900">🔧 Property Condition</h4>
               <div class="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p class="text-gray-600">Renovation Level:</p>
-                  <p class="font-semibold">{{ formatRenovation(researchData.renovationNeeded) }}</p>
+                  <p class="font-semibold text-gray-900">{{ formatRenovation(researchData.renovationNeeded) }}</p>
                 </div>
                 <div>
                   <p class="text-gray-600">Est. Renovation Cost:</p>
-                  <p class="font-semibold">${{ getRenovationCost().toLocaleString() }}</p>
+                  <p class="font-semibold text-gray-900">${{ getRenovationCost().toLocaleString() }}</p>
                 </div>
                 <div v-if="researchData.hiddenDamage">
                   <p class="text-gray-600">Hidden Damage:</p>
@@ -270,7 +270,7 @@
         <!-- Level 3: Occupant Contact (if occupied) -->
         <div v-if="property.occupant" class="border rounded-lg p-4">
           <div class="flex justify-between items-center mb-3">
-            <h3 class="font-semibold text-lg">📞 Level 3: Occupant Contact</h3>
+            <h3 class="font-semibold text-lg text-gray-900">📞 Level 3: Occupant Contact</h3>
             <button 
               v-if="researchData?.level === 2"
               @click="performResearch(3)"
@@ -295,13 +295,13 @@
           <div v-if="researchData?.level >= 3 && researchData.occupantDetails" class="bg-purple-50 rounded p-4">
             <div class="space-y-2 text-sm">
               <p class="text-green-600 font-semibold mb-2">✓ Contact Successful!</p>
-              <p><strong>Name:</strong> {{ researchData.occupantDetails.name }}</p>
-              <p><strong>Occupation:</strong> {{ researchData.occupantDetails.occupation || 'Unknown' }}</p>
-              <p><strong>Monthly Income:</strong> ${{ researchData.occupantDetails.monthlyIncome?.toLocaleString() || 'Unknown' }}</p>
-              <p><strong>Credit Score:</strong> {{ researchData.occupantDetails.creditScore || 'Unknown' }}</p>
-              <p><strong>Willingness to Negotiate:</strong> {{ researchData.occupantDetails.willingToNegotiate ? 'Yes' : 'No' }}</p>
-              <p><strong>Preferred Outcome:</strong> {{ formatPreference(researchData.occupantDetails.preferredOutcome) }}</p>
-              <p><strong>Story:</strong> {{ researchData.occupantDetails.story || 'No additional information' }}</p>
+              <p class="text-gray-900"><strong>Name:</strong> {{ researchData.occupantDetails.name }}</p>
+              <p class="text-gray-900"><strong>Occupation:</strong> {{ researchData.occupantDetails.occupation || 'Unknown' }}</p>
+              <p class="text-gray-900"><strong>Monthly Income:</strong> ${{ researchData.occupantDetails.monthlyIncome?.toLocaleString() || 'Unknown' }}</p>
+              <p class="text-gray-900"><strong>Credit Score:</strong> {{ researchData.occupantDetails.creditScore || 'Unknown' }}</p>
+              <p class="text-gray-900"><strong>Willingness to Negotiate:</strong> {{ researchData.occupantDetails.willingToNegotiate ? 'Yes' : 'No' }}</p>
+              <p class="text-gray-900"><strong>Preferred Outcome:</strong> {{ formatPreference(researchData.occupantDetails.preferredOutcome) }}</p>
+              <p class="text-gray-900"><strong>Story:</strong> {{ researchData.occupantDetails.story || 'No additional information' }}</p>
             </div>
           </div>
           
@@ -317,7 +317,7 @@
       </div>
       
       <!-- Fixed Footer with Action Buttons -->
-      <div class="p-6 pt-4 border-t bg-gray-50">
+      <div class="p-6 pt-4 border-t bg-gray-50 flex-shrink-0">
         <div class="flex gap-3">
           <button 
             @click="$emit('close')"
